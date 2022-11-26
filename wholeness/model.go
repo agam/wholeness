@@ -18,10 +18,8 @@ type noOpModel struct {
 	SimpleModel
 }
 
-func NewNoOpModel() *noOpModel {
-	return &noOpModel{
-		SimpleModel{
-			agents: []Agent{&noOpAgent{}},
-		},
+func NewNoOpModel() SimpleModel {
+	return SimpleModel{
+		agents: []Agent{&noOpAgent{}, &noOpAgent{}},
 	}
 }

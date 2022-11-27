@@ -3,22 +3,25 @@ package wholeness
 import (
 	"fmt"
 	"math/rand"
+	"time"
 )
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
 
 //////////////////////////////////////// Begin Interfaces ////////////////////////////////////////
 type AgentID int
-
-type Position struct {
-	X, Y int
-}
 
 type World interface {
 	Tick()
 	Add(Agent, Position)
 	UpdatePosition(id AgentID, old, new Position)
 
-	GetRandomPosition() Position
 	RenderDebugDump()
+
+	getRandomPosition() Position
+	getAgentsAtPosition(Position) []AgentID
 }
 
 type AgentIDSet map[AgentID]bool
@@ -40,7 +43,7 @@ func NewSimpleWorld(dim Position) *simpleWorld {
 	}
 }
 
-func (w *simpleWorld) GetRandomPosition() Position {
+func (w *simpleWorld) getRandomPosition() Position {
 	return Position{
 		Y: rand.Intn(w.dimension.Y),
 		X: rand.Intn(w.dimension.X),
@@ -75,6 +78,15 @@ func (w *simpleWorld) UpdatePosition(id AgentID, oldPosition, newPosition Positi
 		w.positions[newPosition] = make(map[AgentID]bool)
 	}
 	w.positions[newPosition][id] = true
+}
+
+func (w *simpleWorld) getAgentsAtPosition(pos Position) []AgentID {
+	agentMap := w.positions[pos]
+	agentList := make([]AgentID, 0)
+	for agentID := range agentMap {
+		agentList = append(agentList, agentID)
+	}
+	return agentList
 }
 
 func (w *simpleWorld) RenderDebugDump() {

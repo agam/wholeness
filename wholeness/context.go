@@ -2,7 +2,7 @@ package wholeness
 
 type AgentContext interface {
 	Move(Position, Position)
-	Look(Position) []Agent
+	Look(Position) []AgentID
 	Destroy(AgentID)
 }
 
@@ -15,9 +15,8 @@ func (s simpleContext) Move(old, new Position) {
 	s.world.UpdatePosition(s.id, old, new)
 }
 
-func (s simpleContext) Look(position Position) []Agent {
-	//TODO implement me
-	panic("implement me")
+func (s simpleContext) Look(position Position) []AgentID {
+	return s.world.getAgentsAtPosition(position)
 }
 
 func (s simpleContext) Destroy(id AgentID) {

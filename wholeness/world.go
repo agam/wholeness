@@ -15,15 +15,10 @@ type Position struct {
 type World interface {
 	Tick()
 	Add(Agent, Position)
+	UpdatePosition(id AgentID, old, new Position)
 
 	GetRandomPosition() Position
 	RenderDebugDump()
-}
-
-type AgentContext interface {
-	Move(AgentID, Position)
-	Look(Position) []Agent
-	Destroy(AgentID)
 }
 
 type AgentIDSet map[AgentID]bool
@@ -64,27 +59,22 @@ func (w *simpleWorld) Add(a Agent, p Position) {
 		w.positions[p] = make(map[AgentID]bool)
 	}
 	w.positions[p][id] = true
+	a.Init(p)
 }
 
 func (w *simpleWorld) Tick() {
-	for _, agent := range w.agents {
-		agent.Tick(w)
+	for id, agent := range w.agents {
+		ctx := simpleContext{id: id, world: w}
+		agent.Tick(ctx)
 	}
 }
 
-func (w *simpleWorld) Move(id AgentID, position Position) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (w *simpleWorld) Look(position Position) []Agent {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (w *simpleWorld) Destroy(id AgentID) {
-	//TODO implement me
-	panic("implement me")
+func (w *simpleWorld) UpdatePosition(id AgentID, oldPosition, newPosition Position) {
+	delete(w.positions[oldPosition], id)
+	if _, ok := w.positions[newPosition]; !ok {
+		w.positions[newPosition] = make(map[AgentID]bool)
+	}
+	w.positions[newPosition][id] = true
 }
 
 func (w *simpleWorld) RenderDebugDump() {

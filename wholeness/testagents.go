@@ -1,6 +1,7 @@
 package wholeness
 
 import (
+	"fmt"
 	"math/rand"
 )
 
@@ -109,6 +110,46 @@ func NewBouncingModel() FixedModel {
 
 	// Add two "balls" inside
 	agents[Position{X: 2, Y: 2}] = &bouncingAgent{}
+
+	return FixedModel{agentMap: agents}
+}
+
+//////////////////////////////////////// Blowing up
+type blowupAgent struct {
+	current Position
+	drift   Position
+}
+
+func (a *blowupAgent) Init(pos Position) {
+	a.current = pos
+	a.drift = getRandomDirection()
+}
+
+func (a *blowupAgent) Tick(ctx AgentContext) {
+	nextPos := a.current.Add(a.drift)
+	contents := ctx.Look(nextPos)
+	if len(contents) != 0 {
+		fmt.Println("BOOM !! ")
+		ctx.SelfDestruct()
+		return
+	}
+	ctx.Move(a.current, nextPos)
+	a.current = nextPos
+}
+
+func NewBlowupModel() FixedModel {
+	agents := make(map[Position]Agent, 0)
+	// Make a "solid" box
+	const dim = 4
+	for i := 0; i < dim; i++ {
+		agents[Position{Y: 0, X: i}] = &noOpAgent{}
+		agents[Position{Y: dim, X: i}] = &noOpAgent{}
+		agents[Position{Y: i, X: 0}] = &noOpAgent{}
+		agents[Position{Y: i, X: dim}] = &noOpAgent{}
+	}
+
+	// Add a "bomb" inside.
+	agents[Position{X: 2, Y: 2}] = &blowupAgent{}
 
 	return FixedModel{agentMap: agents}
 }

@@ -3,7 +3,7 @@ package wholeness
 type AgentContext interface {
 	Move(Position, Position)
 	Look(Position) []AgentID
-	Destroy(AgentID)
+	SelfDestruct()
 }
 
 type simpleContext struct {
@@ -19,7 +19,6 @@ func (s simpleContext) Look(position Position) []AgentID {
 	return s.world.getAgentsAtPosition(position)
 }
 
-func (s simpleContext) Destroy(id AgentID) {
-	//TODO implement me
-	panic("implement me")
+func (s simpleContext) SelfDestruct() {
+	s.world.DestroyAgent(s.id)
 }

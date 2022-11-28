@@ -2,6 +2,7 @@ package wholeness
 
 import (
 	"fmt"
+	"github.com/barweiss/go-tuple"
 	"math/rand"
 	"time"
 )
@@ -17,6 +18,7 @@ type World interface {
 	Tick()
 	Add(Agent, Position)
 	UpdatePosition(id AgentID, old, new Position)
+	DestroyAgent(id AgentID)
 
 	RenderDebugDump()
 
@@ -31,15 +33,15 @@ type AgentIDSet map[AgentID]bool
 type simpleWorld struct {
 	dimension Position
 	positions map[Position]AgentIDSet
-	agents    map[AgentID]Agent
+	agents    map[AgentID]tuple.T2[Agent, Position]
 	nextID    AgentID
 }
 
-func NewSimpleWorld(dim Position) *simpleWorld {
+func NewSimpleWorld(dim Position) World {
 	return &simpleWorld{
 		dimension: dim,
 		positions: make(map[Position]AgentIDSet),
-		agents:    make(map[AgentID]Agent),
+		agents:    make(map[AgentID]tuple.T2[Agent, Position]),
 	}
 }
 
@@ -57,7 +59,7 @@ func (w *simpleWorld) newAgentID() AgentID {
 
 func (w *simpleWorld) Add(a Agent, p Position) {
 	id := w.newAgentID()
-	w.agents[id] = a
+	w.agents[id] = tuple.New2(a, p)
 	if _, ok := w.positions[p]; !ok {
 		w.positions[p] = make(map[AgentID]bool)
 	}
@@ -66,9 +68,9 @@ func (w *simpleWorld) Add(a Agent, p Position) {
 }
 
 func (w *simpleWorld) Tick() {
-	for id, agent := range w.agents {
+	for id, agentPosition := range w.agents {
 		ctx := simpleContext{id: id, world: w}
-		agent.Tick(ctx)
+		agentPosition.V1.Tick(ctx)
 	}
 }
 
@@ -78,6 +80,9 @@ func (w *simpleWorld) UpdatePosition(id AgentID, oldPosition, newPosition Positi
 		w.positions[newPosition] = make(map[AgentID]bool)
 	}
 	w.positions[newPosition][id] = true
+
+	agentPosition := w.agents[id]
+	w.agents[id] = tuple.New2(agentPosition.V1, newPosition)
 }
 
 func (w *simpleWorld) getAgentsAtPosition(pos Position) []AgentID {
@@ -87,6 +92,17 @@ func (w *simpleWorld) getAgentsAtPosition(pos Position) []AgentID {
 		agentList = append(agentList, agentID)
 	}
 	return agentList
+}
+
+func (w *simpleWorld) DestroyAgent(id AgentID) {
+	agentPosition, ok := w.agents[id]
+	if !ok {
+		return
+	}
+	pos := agentPosition.V2
+	posAgents := w.positions[pos]
+	delete(posAgents, id)
+	delete(w.agents, id)
 }
 
 func (w *simpleWorld) RenderDebugDump() {

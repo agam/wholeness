@@ -3,6 +3,7 @@ package wholeness
 import (
 	"fmt"
 	"github.com/barweiss/go-tuple"
+	"github.com/rivo/tview"
 	"math/rand"
 	"time"
 )
@@ -21,6 +22,7 @@ type World interface {
 	DestroyAgent(id AgentID)
 
 	RenderDebugDump()
+	RenderTable(*tview.Table)
 
 	getRandomPosition() Position
 	getAgentsAtPosition(Position) []AgentID
@@ -105,23 +107,36 @@ func (w *simpleWorld) DestroyAgent(id AgentID) {
 	delete(w.agents, id)
 }
 
-func (w *simpleWorld) RenderDebugDump() {
-	fmt.Println("\n-------- BEGIN WORLD -------- ")
-	fmt.Println()
+type renderCellCallback func(found bool, agents AgentIDSet)
+type renderRowEndCallback func()
+
+func (w *simpleWorld) renderHelper(callback renderCellCallback, endCallback renderRowEndCallback) {
 	for i := 0; i < w.dimension.Y; i++ {
-		fmt.Printf("|")
 		for j := 0; j < w.dimension.X; j++ {
 			pos := Position{Y: i, X: j}
 			agents, ok := w.positions[pos]
-			if !ok || len(agents) == 0 {
-				fmt.Print("   ")
-			} else {
-				fmt.Printf(" %d ", len(agents))
-			}
+			callback(ok, agents)
 		}
+		endCallback()
+	}
+}
+
+func (w *simpleWorld) RenderDebugDump() {
+	fmt.Println("\n-------- BEGIN WORLD -------- ")
+	fmt.Println()
+	w.renderHelper(func(found bool, agents AgentIDSet) {
+		if !found || len(agents) == 0 {
+			fmt.Print("   ")
+		} else {
+			fmt.Printf(" %d ", len(agents))
+		}
+	}, func() {
 		fmt.Printf("|")
 		fmt.Println()
-	}
+	})
 	fmt.Println("\n-------- END WORLD -------- ")
 	fmt.Println()
+}
+
+func (w *simpleWorld) RenderTable(table *tview.Table) {
 }

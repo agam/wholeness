@@ -107,7 +107,7 @@ func (w *simpleWorld) DestroyAgent(id AgentID) {
 	delete(w.agents, id)
 }
 
-type renderCellCallback func(found bool, agents AgentIDSet)
+type renderCellCallback func(found bool, agents AgentIDSet, pos Position)
 type renderRowEndCallback func()
 
 func (w *simpleWorld) renderHelper(callback renderCellCallback, endCallback renderRowEndCallback) {
@@ -115,7 +115,7 @@ func (w *simpleWorld) renderHelper(callback renderCellCallback, endCallback rend
 		for j := 0; j < w.dimension.X; j++ {
 			pos := Position{Y: i, X: j}
 			agents, ok := w.positions[pos]
-			callback(ok, agents)
+			callback(ok, agents, pos)
 		}
 		endCallback()
 	}
@@ -124,7 +124,7 @@ func (w *simpleWorld) renderHelper(callback renderCellCallback, endCallback rend
 func (w *simpleWorld) RenderDebugDump() {
 	fmt.Println("\n-------- BEGIN WORLD -------- ")
 	fmt.Println()
-	w.renderHelper(func(found bool, agents AgentIDSet) {
+	w.renderHelper(func(found bool, agents AgentIDSet, _ Position) {
 		if !found || len(agents) == 0 {
 			fmt.Print("   ")
 		} else {
@@ -138,5 +138,15 @@ func (w *simpleWorld) RenderDebugDump() {
 	fmt.Println()
 }
 
+const emptyCell = "   "
+
 func (w *simpleWorld) RenderTable(table *tview.Table) {
+	w.renderHelper(func(found bool, agents AgentIDSet, pos Position) {
+		if !found || len(agents) == 0 {
+			table.SetCell(pos.Y, pos.X, tview.NewTableCell(emptyCell))
+		} else {
+			// TODO: add colors etc.
+			table.SetCell(pos.Y, pos.X, tview.NewTableCell(fmt.Sprintf(" %d ", len(agents))))
+		}
+	}, func() {})
 }

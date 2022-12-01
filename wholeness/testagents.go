@@ -109,7 +109,7 @@ func (a *bouncingAgent) Render() rune {
 	return '🥎'
 }
 
-func NewBouncingModel() FixedModel {
+func NewBouncingModel() *FixedModel {
 	agents := make(map[Position]Agent, 0)
 	// Make a "solid" box
 	const dim = 4
@@ -123,7 +123,7 @@ func NewBouncingModel() FixedModel {
 	// Add two "balls" inside
 	agents[Position{X: 2, Y: 2}] = &bouncingAgent{}
 
-	return FixedModel{agentMap: agents}
+	return &FixedModel{agentMap: agents}
 }
 
 //////////////////////////////////////// Blowing up
@@ -153,7 +153,7 @@ func (a *blowupAgent) Render() rune {
 	return 'O'
 }
 
-func NewBlowupModel() FixedModel {
+func NewBlowupModel() *FixedModel {
 	agents := make(map[Position]Agent, 0)
 	// Make a "solid" box
 	const dim = 4
@@ -167,5 +167,5 @@ func NewBlowupModel() FixedModel {
 	// Add a "bomb" inside.
 	agents[Position{X: 2, Y: 2}] = &blowupAgent{}
 
-	return FixedModel{agentMap: agents}
+	return &FixedModel{agentMap: agents}
 }

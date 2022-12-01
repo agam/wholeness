@@ -3,16 +3,17 @@ package wholeness
 import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"time"
 )
 
 type driver struct {
-	m Model
+	m *Model
 	w World
 }
 
-func NewDriver(m Model, w World) *driver {
-	return &driver{m, w}
+func NewDriver(m *Model, w World) *driver {
+	d := &driver{m, w}
+	d.init()
+	return d
 }
 
 func (d *driver) init() {
@@ -34,17 +35,17 @@ func (d *driver) RunTUI() {
 	table := tview.NewTable()
 	table.SetBorder(true).SetBorderColor(tcell.ColorWhite)
 
-	m := NewBouncingModel()
-	w := NewSimpleWorld(Position{X: 10, Y: 10})
-
-	m.BigBang(w)
-
 	step := func() {
-		w.RenderTable(table)
-		w.Tick()
-		time.Sleep(time.Second)
+		d.w.RenderTable(table)
+		d.w.Tick()
 		app.Draw()
 	}
+
+	// Initial setup
+	go func() {
+		d.w.RenderTable(table)
+		app.Draw()
+	}()
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyRight {

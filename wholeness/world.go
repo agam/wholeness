@@ -50,8 +50,8 @@ func NewSimpleWorld(dim Position) World {
 
 func (w *simpleWorld) getRandomPosition() Position {
 	return Position{
-		Y: rand.Intn(w.dimension.Y),
-		X: rand.Intn(w.dimension.X),
+		Y: rand.Intn(w.dimension.Y - 1),
+		X: rand.Intn(w.dimension.X - 1),
 	}
 }
 

@@ -17,8 +17,12 @@ func (a *noOpAgent) Render() rune {
 	return '.'
 }
 
-func NewNoOpModel() SimpleModel {
-	return SimpleModel{
+func (a *noOpAgent) IsFixed() bool {
+	return true
+}
+
+func NewNoOpModel() *Model {
+	return &Model{
 		agents: []Agent{&noOpAgent{}, &noOpAgent{}},
 	}
 }
@@ -43,8 +47,12 @@ func (a *constantMoveAgent) Render() rune {
 	return '*'
 }
 
-func NewMovingModel() SimpleModel {
-	return SimpleModel{
+func (a *constantMoveAgent) IsFixed() bool {
+	return false
+}
+
+func NewMovingModel() *Model {
+	return &Model{
 		agents: []Agent{
 			&constantMoveAgent{change: Position{Y: 1, X: 0}},
 			&constantMoveAgent{change: Position{Y: 0, X: -1}},
@@ -109,21 +117,29 @@ func (a *bouncingAgent) Render() rune {
 	return '🥎'
 }
 
-func NewBouncingModel() *FixedModel {
-	agents := make(map[Position]Agent, 0)
+func (a *bouncingAgent) IsFixed() bool {
+	return false
+}
+
+func NewBouncingModel(dim int, numballs int) *Model {
+	fixedAgents := make(map[Position]Agent, 0)
 	// Make a "solid" box
-	const dim = 4
 	for i := 0; i < dim; i++ {
-		agents[Position{Y: 0, X: i}] = &noOpAgent{}
-		agents[Position{Y: dim, X: i}] = &noOpAgent{}
-		agents[Position{Y: i, X: 0}] = &noOpAgent{}
-		agents[Position{Y: i, X: dim}] = &noOpAgent{}
+		fixedAgents[Position{Y: 0, X: i}] = &noOpAgent{}
+		fixedAgents[Position{Y: dim - 1, X: i}] = &noOpAgent{}
+		fixedAgents[Position{Y: i, X: 0}] = &noOpAgent{}
+		fixedAgents[Position{Y: i, X: dim - 1}] = &noOpAgent{}
 	}
 
-	// Add two "balls" inside
-	agents[Position{X: 2, Y: 2}] = &bouncingAgent{}
+	floatingAgents := make([]Agent, 0)
+	for i := 0; i < numballs; i++ {
+		floatingAgents = append(floatingAgents, &bouncingAgent{})
+	}
 
-	return &FixedModel{agentMap: agents}
+	return &Model{
+		agentMap: fixedAgents,
+		agents:   floatingAgents,
+	}
 }
 
 //////////////////////////////////////// Blowing up
@@ -153,19 +169,27 @@ func (a *blowupAgent) Render() rune {
 	return 'O'
 }
 
-func NewBlowupModel() *FixedModel {
-	agents := make(map[Position]Agent, 0)
+func (a *blowupAgent) IsFixed() bool {
+	return false
+}
+
+func NewBlowupModel() *Model {
+	fixedAgents := make(map[Position]Agent, 0)
 	// Make a "solid" box
 	const dim = 4
 	for i := 0; i < dim; i++ {
-		agents[Position{Y: 0, X: i}] = &noOpAgent{}
-		agents[Position{Y: dim, X: i}] = &noOpAgent{}
-		agents[Position{Y: i, X: 0}] = &noOpAgent{}
-		agents[Position{Y: i, X: dim}] = &noOpAgent{}
+		fixedAgents[Position{Y: 0, X: i}] = &noOpAgent{}
+		fixedAgents[Position{Y: dim, X: i}] = &noOpAgent{}
+		fixedAgents[Position{Y: i, X: 0}] = &noOpAgent{}
+		fixedAgents[Position{Y: i, X: dim}] = &noOpAgent{}
 	}
 
 	// Add a "bomb" inside.
-	agents[Position{X: 2, Y: 2}] = &blowupAgent{}
+	floatingAgents := make([]Agent, 0)
+	floatingAgents = append(floatingAgents, &blowupAgent{})
 
-	return &FixedModel{agentMap: agents}
+	return &Model{
+		agentMap: fixedAgents,
+		agents:   floatingAgents,
+	}
 }

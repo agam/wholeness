@@ -29,6 +29,7 @@ type World interface {
 }
 
 type AgentIDSet map[AgentID]bool
+type AgentList []Agent
 
 //////////////////////////////////////// End Interfaces ////////////////////////////////////////
 
@@ -107,7 +108,7 @@ func (w *simpleWorld) DestroyAgent(id AgentID) {
 	delete(w.agents, id)
 }
 
-type renderCellCallback func(found bool, agents AgentIDSet, pos Position)
+type renderCellCallback func(found bool, agents AgentList, pos Position)
 type renderRowEndCallback func()
 
 func (w *simpleWorld) renderHelper(callback renderCellCallback, endCallback renderRowEndCallback) {
@@ -115,7 +116,14 @@ func (w *simpleWorld) renderHelper(callback renderCellCallback, endCallback rend
 		for j := 0; j < w.dimension.X; j++ {
 			pos := Position{Y: i, X: j}
 			agents, ok := w.positions[pos]
-			callback(ok, agents, pos)
+			if !ok {
+				callback(false, AgentList{}, pos)
+			}
+			agentList := make([]Agent, 0)
+			for id, _ := range agents {
+				agentList = append(agentList, w.agents[id].V1)
+			}
+			callback(true, agentList, pos)
 		}
 		endCallback()
 	}
@@ -124,7 +132,7 @@ func (w *simpleWorld) renderHelper(callback renderCellCallback, endCallback rend
 func (w *simpleWorld) RenderDebugDump() {
 	fmt.Println("\n-------- BEGIN WORLD -------- ")
 	fmt.Println()
-	w.renderHelper(func(found bool, agents AgentIDSet, _ Position) {
+	w.renderHelper(func(found bool, agents AgentList, _ Position) {
 		if !found || len(agents) == 0 {
 			fmt.Print("   ")
 		} else {
@@ -141,12 +149,29 @@ func (w *simpleWorld) RenderDebugDump() {
 const emptyCell = "   "
 
 func (w *simpleWorld) RenderTable(table *tview.Table) {
-	w.renderHelper(func(found bool, agents AgentIDSet, pos Position) {
+	w.renderHelper(func(found bool, agents AgentList, pos Position) {
 		if !found || len(agents) == 0 {
 			table.SetCell(pos.Y, pos.X, tview.NewTableCell(emptyCell))
 		} else {
-			// TODO: add colors etc.
-			table.SetCell(pos.Y, pos.X, tview.NewTableCell(fmt.Sprintf(" %d ", len(agents))))
+			switch len(agents) {
+			case 1:
+				table.SetCell(pos.Y, pos.X, tview.NewTableCell(fmt.Sprintf(" %c ", agents[0].Render())))
+			case 2:
+				table.SetCell(
+					pos.Y, pos.X,
+					tview.NewTableCell(fmt.Sprintf("%c %c",
+						agents[0].Render(),
+						agents[1].Render())))
+			case 3:
+				table.SetCell(
+					pos.Y, pos.X,
+					tview.NewTableCell(fmt.Sprintf("%c%c%c",
+						agents[0].Render(),
+						agents[1].Render(),
+						agents[2].Render())))
+			default:
+				table.SetCell(pos.Y, pos.X, tview.NewTableCell(fmt.Sprintf(" %d ", len(agents))))
+			}
 		}
 	}, func() {})
 }

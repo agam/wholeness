@@ -13,6 +13,10 @@ func (a *noOpAgent) Init(_ Position) {}
 
 func (a *noOpAgent) Tick(_ AgentContext) {}
 
+func (a *noOpAgent) Render() rune {
+	return '.'
+}
+
 func NewNoOpModel() SimpleModel {
 	return SimpleModel{
 		agents: []Agent{&noOpAgent{}, &noOpAgent{}},
@@ -33,6 +37,10 @@ func (a *constantMoveAgent) Tick(ctx AgentContext) {
 	newPosition := a.current.Add(a.change)
 	ctx.Move(a.current, newPosition)
 	a.current = newPosition
+}
+
+func (a *constantMoveAgent) Render() rune {
+	return '*'
 }
 
 func NewMovingModel() SimpleModel {
@@ -97,6 +105,10 @@ func (a *bouncingAgent) Tick(ctx AgentContext) {
 	}
 }
 
+func (a *bouncingAgent) Render() rune {
+	return '🥎'
+}
+
 func NewBouncingModel() FixedModel {
 	agents := make(map[Position]Agent, 0)
 	// Make a "solid" box
@@ -135,6 +147,10 @@ func (a *blowupAgent) Tick(ctx AgentContext) {
 	}
 	ctx.Move(a.current, nextPos)
 	a.current = nextPos
+}
+
+func (a *blowupAgent) Render() rune {
+	return 'O'
 }
 
 func NewBlowupModel() FixedModel {

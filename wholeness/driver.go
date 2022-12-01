@@ -35,10 +35,12 @@ func (d *driver) RunTUI() {
 	table := tview.NewTable()
 	table.SetBorder(true).SetBorderColor(tcell.ColorWhite)
 
-	step := func() {
-		d.w.RenderTable(table)
-		d.w.Tick()
-		app.Draw()
+	step := func(num int) {
+		for i := 0; i < num; i++ {
+			d.w.RenderTable(table)
+			d.w.Tick()
+			app.Draw()
+		}
 	}
 
 	// Initial setup
@@ -48,8 +50,14 @@ func (d *driver) RunTUI() {
 	}()
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyRight {
-			go step()
+		// "Run"
+		if event.Key() == tcell.KeyCtrlR {
+			go step(1)
+			return nil
+		}
+		// "Turbo"
+		if event.Key() == tcell.KeyCtrlT {
+			go step(5)
 			return nil
 		}
 		return event

@@ -139,6 +139,7 @@ func NewBouncingModel(dim int, numballs int) *Model {
 	return &Model{
 		agentMap: fixedAgents,
 		agents:   floatingAgents,
+		name:     "Bouncing Balls",
 	}
 }
 

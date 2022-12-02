@@ -3,6 +3,7 @@ package wholeness
 type Model struct {
 	agentMap map[Position]Agent
 	agents   []Agent
+	name     string
 }
 
 func (m *Model) BigBang(w World) {
